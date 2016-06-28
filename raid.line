@@ -1,0 +1,1 @@
+ant package -Ddist.dir=$HADOOP_HOME/build

@@ -1,0 +1,85 @@
+Safe mode is ON
+Configured Capacity: 56260509696 (52.4 GB)
+Present Capacity: 15372009472 (14.32 GB)
+DFS Remaining: 14697324544 (13.69 GB)
+DFS Used: 674684928 (643.43 MB)
+DFS Used%: 4.39%
+Under replicated blocks: 0
+Blocks with corrupt replicas: 0
+Missing blocks: 0
+
+-------------------------------------------------
+Datanodes available: 6 (6 total, 0 dead)
+
+Name: 127.0.0.1:50011
+Rack: /default/rack_01
+Decommission Status : Normal
+Configured Capacity: 9376751616 (8.73 GB)
+DFS Used: 67690496 (64.55 MB)
+Non DFS Used: 6859501568 (6.39 GB)
+DFS Remaining: 2449559552(2.28 GB)
+DFS Used%: 0.72%
+DFS Remaining%: 26.12%
+Last contact: Fri Aug 21 17:54:51 EST 2015
+
+
+Name: 127.0.0.1:50010
+Rack: /default/rack_01
+Decommission Status : Normal
+Configured Capacity: 9376751616 (8.73 GB)
+DFS Used: 135340032 (129.07 MB)
+Non DFS Used: 6791852032 (6.33 GB)
+DFS Remaining: 2449559552(2.28 GB)
+DFS Used%: 1.44%
+DFS Remaining%: 26.12%
+Last contact: Fri Aug 21 17:54:51 EST 2015
+
+
+Name: 127.0.0.1:50012
+Rack: /default/rack_01
+Decommission Status : Normal
+Configured Capacity: 9376751616 (8.73 GB)
+DFS Used: 203001856 (193.6 MB)
+Non DFS Used: 6724190208 (6.26 GB)
+DFS Remaining: 2449559552(2.28 GB)
+DFS Used%: 2.16%
+DFS Remaining%: 26.12%
+Last contact: Fri Aug 21 17:54:50 EST 2015
+
+
+Name: 127.0.0.1:50015
+Rack: /default/rack_01
+Decommission Status : Normal
+Configured Capacity: 9376751616 (8.73 GB)
+DFS Used: 66641920 (63.55 MB)
+Non DFS Used: 6860550144 (6.39 GB)
+DFS Remaining: 2449559552(2.28 GB)
+DFS Used%: 0.71%
+DFS Remaining%: 26.12%
+Last contact: Fri Aug 21 17:54:51 EST 2015
+
+
+Name: 127.0.0.1:50014
+Rack: /default/rack_01
+Decommission Status : Normal
+Configured Capacity: 9376751616 (8.73 GB)
+DFS Used: 66662400 (63.57 MB)
+Non DFS Used: 6860529664 (6.39 GB)
+DFS Remaining: 2449559552(2.28 GB)
+DFS Used%: 0.71%
+DFS Remaining%: 26.12%
+Last contact: Fri Aug 21 17:54:49 EST 2015
+
+
+Name: 127.0.0.1:50013
+Rack: /default/rack_01
+Decommission Status : Normal
+Configured Capacity: 9376751616 (8.73 GB)
+DFS Used: 135348224 (129.08 MB)
+Non DFS Used: 6791876608 (6.33 GB)
+DFS Remaining: 2449526784(2.28 GB)
+DFS Used%: 1.44%
+DFS Remaining%: 26.12%
+Last contact: Fri Aug 21 17:54:51 EST 2015
+
+

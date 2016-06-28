@@ -1,0 +1,47 @@
+   <configuration>
+    <srcPath prefix="*">
+      <policy name = "mahesh">
+	<erasureCode>RS</erasureCode>
+        <property>	
+          <name>srcReplication</name>
+          <value>3</value>
+          <description> Pick files for RAID only if their replication factor is
+                        greater than or equal to this value.
+          </description>
+        </property>
+        <property>
+          <name>targetReplication</name>
+          <value>1</value>
+          <description> After RAIDing, decrease the replication factor of a file to 
+                        this value.
+          </description>
+        </property>
+        <property>
+          <name>metaReplication</name>
+          <value>1</value>
+          <description> the replication factor of the RAID meta file
+          </description>
+        </property>
+        <property>
+          <name>modTimePeriod</name>
+          <value>3</value>
+          <description> time (milliseconds) after a file is modified to make it a
+                        candidate for RAIDing
+          </description>
+        </property>
+ 	<property>
+		<name>raid.blockfix.interval</name>
+		<value>2000</value>
+		<description>interval in milliseconds between checks for lost files. Default is 1 minute</description>
+	</property>
+	<property>
+	    <name>raid.blockfix.classname</name>
+	    <value>org.apache.hadoop.raid.LocalBlockIntegrityMonitor</value>
+	    <description>Specify the BlockIntegrityMonitor implementation to use.
+	      The default is org.apache.hadoop.raid.DistBlockIntegrityMonitor.
+	    </description>
+	</property>
+      </policy>
+    </srcPath>
+   </configuration>
+
