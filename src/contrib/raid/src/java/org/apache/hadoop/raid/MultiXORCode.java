@@ -60,27 +60,92 @@ public class MultiXORCode implements ErasureCode {
   // this means that first try to recover using column parity, if its not possible then
   // use full row parities (check if neighbors data is not 0, then is heavy decoder)
   public void decode(int[] data, int[] erasedLocation, int[] erasedValue) {
-    assert(erasedLocation.length == erasedValue.length);
-    
-    // partially implemented, it's an exercise to show effectiveness only
-    int cols = stripeSize / 2;
-    switch (erasedLocation.length) {
-      // inputs vector contains parities at the beginning!
-      case 1: {
-        // the output is the xor between the parity and the surviving data
-        int erasedPos = erasedLocation[0] - paritySize;
-        erasedValue[0] = data[erasedPos % cols];
-        if (erasedPos < cols)
-          erasedValue[0] ^= data[erasedLocation[0] + cols];
-        else
-          erasedValue[0] ^= data[erasedLocation[0] - cols];
+    assert(erasedLocation.length == erasedValue.length);)
+
+    // we need to see if the erasures are actually recoverable... checking the data and
+    // parities is possible to see what kind of erasure we are trying to fix
+    for (int i = 0; i < erasedLocation.length; i++)
+    {
+      boolean usingHeavyDecoder = false;
+      // lets try if this position contains data...
+      try
+      {
+        usingHeavyDecoder = data[erasedLocation[i] - 1] != 0 ? true : false;
       }
-      break;
-      case 2:
-        // TODO: two errors in different columns...
-        // TODO: two errors in same column...
-        throw new UnsupportedOperationException("MXOR decoder not fully implemented yet");
+      catch(IndexOutOfBoundsException ex)
+      {
+        // if not, lets see the next one...
+        try
+        {
+          usingHeavyDecoder = data[erasedLocation[i] + 1] != 0 ? true : false;
+        }
+        catch(IndexOutOfBoundsException ey)
+        {
+          throw new UnsupportedOperationException("MXOR decoder cannot recover this error");
+        }
+      }
+
+      if (usingHeavyDecoder)
+        applyHeavyRules(data, erasedLocation, erasedValue);
+      else
+        applyLightRules(data, erasedLocation, erasedValue);
+    } 
+  }
+
+  /**
+   * This method will recover any stand-alone erasure without problems, using
+   * the basic principles behind MXOR.
+   *
+   * @param data            Input with all the data retrieved from the DFS
+   * @param erasedLocation  Array with all the erased locations inside the DFS
+   * @param erasedValue     Output array with all the recovered data values
+   */
+  private void applyLightRules(int[] data, int[] erasedLocation, int[] erasedValue)
+  {
+    // for each erased location lets decode using the simple parity approach
+    int cols = stripeSize / 2;
+    for (int i = 0; i < erasedLocation.length; i++) {
+      // the output is the xor between the parity and the surviving data
+      int erasedPos = erasedLocation[i] - paritySize;
+      erasedValue[i] = data[erasedPos % cols];
+      if (erasedPos < cols)
+        erasedValue[i] ^= data[erasedLocation[i] + cols];
+      else
+        erasedValue[i] ^= data[erasedLocation[i] - cols];
     }
+  }
+
+  /**
+   * This method will recover any column erasure without problems, using
+   * the basic principles behind MXOR.
+   *
+   * @param data            Input with all the data retrieved from the DFS
+   * @param erasedLocation  Array with all the erased locations inside the DFS
+   * @param erasedValue     Output array with all the recovered data values
+   */
+  private void applyHeavyRules(int[] data, int[] erasedLocation, int[] erasedValue)
+  {
+    int cols = stripeSize / 2;
+    for (int i = 0; i < erasedLocation.length; i++) {
+      // the output is the xor between the parity and the surviving data
+      int erasedPos = erasedLocation[i] - paritySize;
+      if (erasedPos < cols)
+      {
+        erasedValue[i] = data[cols]; // XOR'ed with upper row parity
+        // the data will be the XORing of all the survival row...
+        for (int j = 0; j < cols; j++)
+          erasedValue[i] ^= data[paritySize + j];
+      }
+      else
+      {
+        erasedValue[i] = data[cols + 1]; // XOR'ed with lower row parity
+        // the data will be the XORing of all the survival row...
+        for (int j = 0; j < cols; j++)
+          erasedValue[i] ^= data[paritySize + cols + j];
+      }
+    }
+    //LOG.debug("(MXOR) erasedLocation is " + convertArrayToString(erasedLocation));
+    //throw new UnsupportedOperationException("MXOR decoder cannot recover this error");
   }
   
   /**
@@ -106,6 +171,7 @@ public class MultiXORCode implements ErasureCode {
     // after that, lets bring the blocks!!
     if (doLightDecode)
     {
+      LOG.debug("(MXOR) Executing light decode...");
       // we rescue the companion data
       if (erasedPos < cols) {
         // it's in the first half of the data
@@ -117,6 +183,7 @@ public class MultiXORCode implements ErasureCode {
     }
     else
     {
+      LOG.debug("(MXOR) Executing heavy decode...");
       // here, we need to recover all the data linked to the erasures
       if (erasedPos < cols) {
         // now, retrieve all the elements in the same row...
@@ -127,8 +194,6 @@ public class MultiXORCode implements ErasureCode {
         }
         // at last, rescue the row parity
         locationsToFetch[cols] = 1;
-        // it's in the first half of the data
-        locationsToFetch[erasedLocation[0] + cols] = 1; // the other data block...
       } else {
         // now, retrieve all the elements in the same row...
         for (int i = paritySize + cols; i < stripeSize; i++)
@@ -138,8 +203,6 @@ public class MultiXORCode implements ErasureCode {
         }
         // at last, rescue the row parity
         locationsToFetch[cols + 1] = 1;
-        // it's in the second half of the data
-        locationsToFetch[erasedLocation[0] - cols] = 1; // the other data block...
       }
     }
   }
