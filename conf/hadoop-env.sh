@@ -6,7 +6,7 @@
 # remote nodes.
 
 # The java implementation to use.  Required.
-export JAVA_HOME=/usr/lib/jvm/java-7-oracle
+export JAVA_HOME=/usr/lib/jvm/java-6-oracle
 
 # Extra Java CLASSPATH elements.  Optional.
 export HADOOP_CLASSPATH=export HADOOP_CLASSPATH=${HADOOP_HOME}/build/contrib/raid/hadoop-0.20-fb-mxor-raid.jar
@@ -25,9 +25,9 @@ export HADOOP_BALANCER_OPTS="-Dcom.sun.management.jmxremote $HADOOP_BALANCER_OPT
 export HADOOP_JOBTRACKER_OPTS="-Dcom.sun.management.jmxremote $HADOOP_JOBTRACKER_OPTS"
 export HADOOP_RAIDNODE_OPTS="-Dcom.sun.management.jmxremote $HADOOP_RAIDNODE_OPTS"
 
-# The only user who can start hadoop daemons. 
-# If this is not set, any user can start hadoop daemons.  
-export HADOOP_USERNAME="mxuser"
+# The only user who can start hadoop daemons.
+# If this is not set, any user can start hadoop daemons.
+export HADOOP_USERNAME="hduser"
 
 # Java Runtime garbage collection options to pass to all Hadoop
 # servers (Namenode, Jobtracker, Datanode, Tasktracker). This must end

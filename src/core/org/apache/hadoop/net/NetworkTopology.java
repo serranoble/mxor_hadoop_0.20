@@ -33,70 +33,70 @@ import org.apache.hadoop.util.MyLogger;
 
 /** The class represents a cluster of computer with a tree hierarchical
  * network topology.
- * For example, a cluster may be consists of many data centers filled 
+ * For example, a cluster may be consists of many data centers filled
  * with racks of computers.
  * In a network topology, leaves represent data nodes (computers) and inner
  * nodes represent switches/routers that manage traffic in/out of data centers
- * or racks.  
- * 
+ * or racks.
+ *
  */
 public class NetworkTopology {
   private static MyLogger myLog = MyLogger.getLogger(NetworkTopology.class);
-	
+
   public final static String DEFAULT_RACK = "/default-rack";
   public final static int DEFAULT_HOST_LEVEL = 2;
-  public static final Log LOG = 
+  public static final Log LOG =
     LogFactory.getLog(NetworkTopology.class);
-    
+
   /* Inner Node represent a switch/router of a data center or rack.
    * Different from a leave node, it has non-null children.
    */
   private class InnerNode extends NodeBase {
     private ArrayList<Node> children=new ArrayList<Node>();
     private int numOfLeaves;
-        
+
     /** Construct an InnerNode from a path-like string */
     InnerNode(String path) {
       super(path);
     }
-        
+
     /** Construct an InnerNode from its name and its network location */
     InnerNode(String name, String location) {
       super(name, location);
     }
-        
+
     /** Construct an InnerNode
      * from its name, its network location, its parent, and its level */
     InnerNode(String name, String location, InnerNode parent, int level) {
       super(name, location, parent, level);
     }
-        
+
     /** Get its children */
     Collection<Node> getChildren() {return children;}
-        
+
     /** Return the number of children this node has */
     int getNumOfChildren() {
       return children.size();
     }
-        
-    /** Judge if this node represents a rack 
+
+    /** Judge if this node represents a rack
      * Return true if it has no child or its children are not InnerNodes
-     */ 
+     */
     boolean isRack() {
       if (children.isEmpty()) {
         return true;
       }
-            
+
       Node firstChild = children.get(0);
       if (firstChild instanceof InnerNode) {
         return false;
       }
-            
+
       return true;
     }
-        
+
     /** Judge if this node is an ancestor of node <i>n</i>
-     * 
+     *
      * @param n a node
      * @return true if this node is an ancestor of <i>n</i>
      */
@@ -105,16 +105,16 @@ public class NetworkTopology {
         (n.getNetworkLocation()+NodeBase.PATH_SEPARATOR_STR).
         startsWith(getPath(this)+NodeBase.PATH_SEPARATOR_STR);
     }
-        
+
     /** Judge if this node is the parent of node <i>n</i>
-     * 
+     *
      * @param n a node
      * @return true if this node is the parent of <i>n</i>
      */
     boolean isParent(Node n) {
       return n.getNetworkLocation().equals(getPath(this));
     }
-        
+
     /* Return a child name of this node who is an ancestor of node <i>n</i> */
     private String getNextAncestorName(Node n) {
       if (!isAncestor(n)) {
@@ -131,7 +131,7 @@ public class NetworkTopology {
       return name;
     }
 
-    /** Add node <i>n</i> to the subtree of this node 
+    /** Add node <i>n</i> to the subtree of this node
      * @param n node to be added
      * @return true if the node is added; false otherwise
      */
@@ -178,9 +178,9 @@ public class NetworkTopology {
         }
       }
     }
-        
+
     /** Remove node <i>n</i> from the subtree of this node
-     * @param n node to be deleted 
+     * @param n node to be deleted
      * @return true if the node is deleted; false otherwise
      */
     boolean remove(Node n) {
@@ -227,11 +227,11 @@ public class NetworkTopology {
         return isRemoved;
       }
     } // end of remove
-        
-    /** Given a node's string representation, return a reference to the node */ 
+
+    /** Given a node's string representation, return a reference to the node */
     private Node getLoc(String loc) {
       if (loc == null || loc.length() == 0) return this;
-            
+
       String[] path = loc.split(PATH_SEPARATOR_STR, 2);
       Node childnode = null;
       for(int i=0; i<children.size(); i++) {
@@ -247,8 +247,8 @@ public class NetworkTopology {
         return null;
       }
     }
-        
-    /** get <i>leafIndex</i> leaf of this subtree 
+
+    /** get <i>leafIndex</i> leaf of this subtree
      * if it is not in the <i>excludedNode</i>*/
     private Node getLeaf(int leafIndex, Node excludedNode) {
       int count=0;
@@ -295,17 +295,17 @@ public class NetworkTopology {
         return null;
       }
     }
-        
+
     int getNumOfLeaves() {
       return numOfLeaves;
     }
   } // end of InnerNode
-    
+
   InnerNode clusterMap = new InnerNode(InnerNode.ROOT); // the root
   private int numOfRacks = 0;  // rack counter
   private ReadWriteLock netlock;
   private Set<String> masterRacksSet = new HashSet<String>();
-    
+
   public NetworkTopology() {
     netlock = new ReentrantReadWriteLock();
   }
@@ -320,12 +320,12 @@ public class NetworkTopology {
     }
 
   }
-    
+
   /** Add a leaf node
    * Update node counter & rack counter if neccessary
    * @param node
    *          node to be added
-   * @exception IllegalArgumentException if add a node to a leave 
+   * @exception IllegalArgumentException if add a node to a leave
                                          or node to be added is not a leaf
    */
   public void add(Node node) {
@@ -338,8 +338,8 @@ public class NetworkTopology {
     try {
       Node rack = getNode(node.getNetworkLocation());
       if (rack != null && !(rack instanceof InnerNode)) {
-        throw new IllegalArgumentException("Unexpected data node " 
-                                           + node.toString() 
+        throw new IllegalArgumentException("Unexpected data node "
+                                           + node.toString()
                                            + " at an illegal network location");
       }
       if (clusterMap.add(node)) {
@@ -353,12 +353,12 @@ public class NetworkTopology {
       netlock.writeLock().unlock();
     }
   }
-    
+
   /** Remove a node
    * Update node counter & rack counter if neccessary
    * @param node
    *          node to be removed
-   */ 
+   */
   public void remove(Node node) {
     if (node==null) return;
     if( node instanceof InnerNode ) {
@@ -379,9 +379,9 @@ public class NetworkTopology {
       netlock.writeLock().unlock();
     }
   }
-       
+
   /** Check if the tree contains node <i>node</i>
-   * 
+   *
    * @param node
    *          a node
    * @return true if <i>node</i> is already in the tree; false otherwise
@@ -399,11 +399,11 @@ public class NetworkTopology {
     } finally {
       netlock.readLock().unlock();
     }
-    return false; 
+    return false;
   }
-    
+
   /** Given a string representation of a node, return its reference
-   * 
+   *
    * @param loc
    *          a path-like string representation of a node
    * @return a reference to the node; null if the node is not in the tree
@@ -458,7 +458,7 @@ public class NetworkTopology {
       netlock.readLock().unlock();
     }
   }
-    
+
   /** Return the distance between two nodes
    * It is assumed that the distance from one node to its parent is 1
    * The distance between two nodes is calculated by summing up their distances
@@ -504,8 +504,8 @@ public class NetworkTopology {
       return Integer.MAX_VALUE;
     }
     return dis+2;
-  } 
-    
+  }
+
   /** Check if two nodes are on the same rack
    * @param node1 one node
    * @param node2 another node
@@ -517,7 +517,7 @@ public class NetworkTopology {
     if (node1 == null || node2 == null) {
       return false;
     }
-      
+
     netlock.readLock().lock();
     try {
       return node1.getParent()==node2.getParent();
@@ -525,7 +525,7 @@ public class NetworkTopology {
       netlock.readLock().unlock();
     }
   }
-    
+
   final private static Random r = new Random();
   /** randomly choose one node from <i>scope</i>
    * if scope starts with ~, choose one from the all nodes except for the
@@ -545,7 +545,7 @@ public class NetworkTopology {
       netlock.readLock().unlock();
     }
   }
-    
+
   private Node chooseRandom(String scope, String excludedScope){
     if (excludedScope != null) {
       if (scope.startsWith(excludedScope)) {
@@ -574,10 +574,10 @@ public class NetworkTopology {
     int leaveIndex = r.nextInt(numOfDatanodes);
     return innerNode.getLeaf(leaveIndex, node);
   }
-       
+
   /** return the number of leaves in <i>scope</i> but not in <i>excludedNodes</i>
    * if scope starts with ~, return the number of nodes that are not
-   * in <i>scope</i> and <i>excludedNodes</i>; 
+   * in <i>scope</i> and <i>excludedNodes</i>;
    * @param scope a path string that may start with ~
    * @param excludedNodes a list of nodes
    * @return number of available nodes
@@ -614,7 +614,7 @@ public class NetworkTopology {
       netlock.readLock().unlock();
     }
   }
-    
+
   /** convert a network tree to a string */
   public String toString() {
     // print the number of racks
@@ -641,9 +641,9 @@ public class NetworkTopology {
     tempNode = nodes[j];
     nodes[j] = nodes[i];
     nodes[i] = tempNode;
-    
+
   }
-  
+
   /** Sort nodes array by their distances to <i>reader</i>
    * It linearly scans the array, if a local node is found, swap it with
    * the first element of the array.
@@ -684,19 +684,19 @@ public class NetworkTopology {
         tempIndex++;
       }
     }
-    
+
     // put a random node at position 0 if it is not a local/local-rack node
     if(tempIndex == 0 && nodes.length != 0) {
       swap(nodes, 0, r.nextInt(nodes.length));
     }
-    
+
     // See if non-rack local nodes are in special racks
     int start = tempIndex;
     int end = nodes.length - 1;
     while (start < end) {
       // Find the node that is not in the special rack at the end of the
       // list of the nodes
-      while (start < end && 
+      while (start < end &&
           masterRacksSet.contains(nodes[end].getNetworkLocation())) {
         end--;
       }
@@ -713,11 +713,6 @@ public class NetworkTopology {
         end--;
         start++;
       }
-    }
-    
-    myLog.write("Retrieving blocks...");
-    for(Node theNode : nodes) {
-    	myLog.write("Comming from: " + theNode.getName() + "-" + theNode.getParent().getName());
     }
   }
 }

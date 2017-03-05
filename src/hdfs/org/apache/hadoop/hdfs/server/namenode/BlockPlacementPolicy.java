@@ -31,32 +31,32 @@ import org.apache.hadoop.util.MyLogger;
 import org.apache.hadoop.util.HostsFileReader;
 import org.apache.hadoop.util.ReflectionUtils;
 
-/** 
+/**
  * This interface is used for choosing the desired number of targets
  * for placing block replicas.
  */
 public abstract class BlockPlacementPolicy {
-	
+
   private static MyLogger myLog = MyLogger.getLogger(BlockPlacementPolicy.class);
-    
+
   public static class NotEnoughReplicasException extends Exception {
     private static final long serialVersionUID = 1L;
     NotEnoughReplicasException(String msg) {
       super(msg);
     }
   }
-    
+
   /**
-   * choose <i>numOfReplicas</i> data nodes for <i>writer</i> 
-   * to re-replicate a block with size <i>blocksize</i> 
+   * choose <i>numOfReplicas</i> data nodes for <i>writer</i>
+   * to re-replicate a block with size <i>blocksize</i>
    * If not, return as many as we can.
-   * 
-   * @param srcPath the file to which this chooseTargets is being invoked. 
+   *
+   * @param srcPath the file to which this chooseTargets is being invoked.
    * @param numOfReplicas additional number of replicas wanted.
    * @param writer the writer's machine, null if not in the cluster.
    * @param chosenNodes datanodes that have been chosen as targets.
    * @param blocksize size of the data to be written.
-   * @return array of DatanodeDescriptor instances chosen as target 
+   * @return array of DatanodeDescriptor instances chosen as target
    * and sorted as a pipeline.
    */
   abstract DatanodeDescriptor[] chooseTarget(String srcPath,
@@ -66,21 +66,21 @@ public abstract class BlockPlacementPolicy {
                                              long blocksize);
 
   /**
-   * choose <i>numOfReplicas</i> data nodes for <i>writer</i> 
-   * to re-replicate a block with size <i>blocksize</i> 
+   * choose <i>numOfReplicas</i> data nodes for <i>writer</i>
+   * to re-replicate a block with size <i>blocksize</i>
    * If not, return as many as we can.
    * The base implemenatation extracts the pathname of the file from the
    * specified srcInode, but this could be a costly operation depending on the
    * file system implementation. Concrete implementations of this class should
    * override this method to avoid this overhead.
-   * 
+   *
    * @param srcPath the file to which this chooseTargets is being invoked.
    * @param numOfReplicas additional number of replicas wanted.
    * @param writer the writer's machine, null if not in the cluster.
    * @param chosenNodes datanodes that have been chosen as targets.
    * @param excludesNodes datanodes to exclude as possible targets.
    * @param blocksize size of the data to be written.
-   * @return array of DatanodeDescriptor instances chosen as target 
+   * @return array of DatanodeDescriptor instances chosen as target
    * and sorted as a pipeline.
    */
   abstract DatanodeDescriptor[] chooseTarget(String srcInode,
@@ -113,7 +113,7 @@ public abstract class BlockPlacementPolicy {
                                     List<DatanodeDescriptor> chosenNodes,
                                     List<Node> excludesNodes,
                                     long blocksize) {
-	myLog.write("choosing target 01");
+	  myLog.write("choosing target 01");
     return chooseTarget(srcInode.getFullPathName(), numOfReplicas, writer,
                         chosenNodes, blocksize);
   }
@@ -121,7 +121,7 @@ public abstract class BlockPlacementPolicy {
   /**
    * Verify that the block is replicated on at least minRacks different racks
    * if there is more than minRacks rack in the system.
-   * 
+   *
    * @param srcPath the full pathname of the file to be verified
    * @param lBlk block with locations
    * @param minRacks number of racks the block should be replicated to
@@ -132,34 +132,34 @@ public abstract class BlockPlacementPolicy {
                                            LocatedBlock lBlk,
                                            int minRacks);
   /**
-   * Decide whether deleting the specified replica of the block still makes 
+   * Decide whether deleting the specified replica of the block still makes
    * the block conform to the configured block placement policy.
-   * 
+   *
    * @param srcInode The inode of the file to which the block-to-be-deleted belongs
    * @param block The block to be deleted
    * @param replicationFactor The required number of replicas for this block
    * @param existingReplicas The replica locations of this block that are present
-                  on at least two unique racks. 
+                  on at least two unique racks.
    * @param moreExistingReplicas Replica locations of this block that are not
                    listed in the previous parameter.
    * @return the replica that is the best candidate for deletion
    */
   abstract public DatanodeDescriptor chooseReplicaToDelete(FSInodeInfo srcInode,
-                                      Block block, 
+                                      Block block,
                                       short replicationFactor,
                                       Collection<DatanodeDescriptor> existingReplicas,
                                       Collection<DatanodeDescriptor> moreExistingReplicas);
 
   /**
-   * Used to setup a BlockPlacementPolicy object. This should be defined by 
+   * Used to setup a BlockPlacementPolicy object. This should be defined by
    * all implementations of a BlockPlacementPolicy.
-   * 
+   *
    * @param conf the configuration object
    * @param stats retrieve cluster status from here
    * @param clusterMap cluster topology
    * @param namesystem the FSNamesystem
    */
-  abstract protected void initialize(Configuration conf,  FSClusterStats stats, 
+  abstract protected void initialize(Configuration conf,  FSClusterStats stats,
                                      NetworkTopology clusterMap,
                                      HostsFileReader hostsReader,
                                      DNSToSwitchMapping dnsToSwitchMapping,
@@ -173,14 +173,14 @@ public abstract class BlockPlacementPolicy {
   /**
    * Get an instance of the configured Block Placement Policy based on the
    * value of the configuration paramater dfs.block.replicator.classname.
-   * 
+   *
    * @param conf the configuration to be used
    * @param stats an object thatis used to retrieve the load on the cluster
    * @param clusterMap the network topology of the cluster
    * @param namesystem the FSNamesystem
    * @return an instance of BlockPlacementPolicy
    */
-  public static BlockPlacementPolicy getInstance(Configuration conf, 
+  public static BlockPlacementPolicy getInstance(Configuration conf,
                                                  FSClusterStats stats,
                                                  NetworkTopology clusterMap,
                                                  HostsFileReader hostsReader,
@@ -193,16 +193,16 @@ public abstract class BlockPlacementPolicy {
     BlockPlacementPolicy replicator = (BlockPlacementPolicy) ReflectionUtils.newInstance(
                                                              replicatorClass, conf);
     myLog.write("getInstance using BlockPlacementPolicy and " + replicatorClass.getName());
-    replicator.initialize(conf, stats, clusterMap, hostsReader, 
+    replicator.initialize(conf, stats, clusterMap, hostsReader,
                           dnsToSwitchMapping, namesystem);
     return replicator;
   }
 
   /**
    * choose <i>numOfReplicas</i> nodes for <i>writer</i> to replicate
-   * a block with size <i>blocksize</i> 
+   * a block with size <i>blocksize</i>
    * If not, return as many as we can.
-   * 
+   *
    * @param srcPath a string representation of the file for which chooseTarget is invoked
    * @param numOfReplicas number of replicas wanted.
    * @param writer the writer's machine, null if not in the cluster.
@@ -214,7 +214,7 @@ public abstract class BlockPlacementPolicy {
                                     int numOfReplicas,
                                     DatanodeDescriptor writer,
                                     long blocksize) {
-	myLog.write("choosing target 02");
+	  myLog.write("choosing target 02");
     return chooseTarget(srcPath, numOfReplicas, writer,
                         new ArrayList<DatanodeDescriptor>(),
                         blocksize);

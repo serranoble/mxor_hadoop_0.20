@@ -49,7 +49,7 @@ class BlockMover {
   final Thread clusterUpdater;
   ExecutorService executor;
   final int dataTransferProtocolVersion;
-  
+
 
   BlockMover(int numMovingThreads, int maxQueueSize,
       boolean simulate, int alwaysSubmitPriorityLevel, Configuration conf) throws IOException {
@@ -60,8 +60,8 @@ class BlockMover {
     ThreadFactory factory = new ThreadFactory() {
       final AtomicInteger numThreads = new AtomicInteger();
       public Thread newThread(Runnable r) {
-        Thread t = new Thread();
-        t.setName("BLockMoveExecutor-" + numThreads.getAndIncrement());
+        Thread t = new Thread(r);
+        t.setName("BlockMoveExecutor-" + numThreads.getAndIncrement());
         return t;
       }
     };
@@ -149,6 +149,7 @@ class BlockMover {
         int priority) {
       this.block = block;
       this.excludedNodes = excludedNodes;
+      // pserrano: the following lines are commented in Lakshmi's code
       for (DatanodeInfo d : block.getLocations()) {
         // Also exclude the original locations
         excludedNodes.add(d);

@@ -25,7 +25,7 @@
 
 <property>
   <name>raid.config.file</name>
-  <value>/app/mxhadoop/conf/raid.xml</value>
+  <value>/app/hadoop/conf/raid.xml</value>
   <description>This is needed by the RaidNode </description>
 </property>
 
@@ -40,7 +40,7 @@
   <value>org.apache.hadoop.raid.DistRaidNode</value>
   <description>Specify which implementation of RaidNode to use (class name).</description>
 </property>
-  
+
 <property>
   <name>raid.policy.rescan.interval</name>
   <value>1000</value>
@@ -70,14 +70,14 @@
 
 <property>
   <name>hdfs.raidrs.paritylength</name>
-  <value>7</value>
-  <description>The number of parity blocks generated from stripeLength number of blocks if pure RS coding is used (FB's version). 
+  <value>4</value>
+  <description>The number of parity blocks generated from stripeLength number of blocks if pure RS coding is used (FB's version).
   This should not be accessed, but is in place for safety, just so if master branch is used along with this hdfs-site file</description>
 </property>
 
 <property>
   <name>hdfs.raidrs.rsparitylength</name>
-  <value>7</value>
+  <value>4</value>
   <description>The number of RS parity blocks generated from stripeLength number of blocks</description>
 </property>
 
@@ -94,7 +94,7 @@
     The default is org.apache.hadoop.raid.DistBlockFixer.
   </description>
 </property>
-  
+
 <property>
   <name>raid.blockfix.interval</name>
   <value>1000</value>
@@ -131,7 +131,7 @@ seconds.</description>
 
 <property>
   <name>raid.codes.useMXOR</name>
-  <value>true</value>
+  <value>false</value>
   <description>flag used to turn on/off the multi-xor code</description>
 </property>
 

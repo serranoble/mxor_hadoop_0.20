@@ -38,7 +38,7 @@ public class MultiXORCode implements ErasureCode {
   public void encode(int[] message, int[] parity) {
     assert(message.length == stripeSize && parity.length == paritySize);
 
-    int cols = stripeSize / 2; 
+    int cols = stripeSize / 2;
     // clear the additional parities first
     parity[cols] = parity[cols + 1] = 0;
     // init the code values
@@ -60,7 +60,7 @@ public class MultiXORCode implements ErasureCode {
   // this means that first try to recover using column parity, if its not possible then
   // use full row parities (check if neighbors data is not 0, then is heavy decoder)
   public void decode(int[] data, int[] erasedLocation, int[] erasedValue) {
-    assert(erasedLocation.length == erasedValue.length);)
+    assert(erasedLocation.length == erasedValue.length);
 
     // we need to see if the erasures are actually recoverable... checking the data and
     // parities is possible to see what kind of erasure we are trying to fix
@@ -89,7 +89,7 @@ public class MultiXORCode implements ErasureCode {
         applyHeavyRules(data, erasedLocation, erasedValue);
       else
         applyLightRules(data, erasedLocation, erasedValue);
-    } 
+    }
   }
 
   /**
@@ -147,11 +147,11 @@ public class MultiXORCode implements ErasureCode {
     //LOG.debug("(MXOR) erasedLocation is " + convertArrayToString(erasedLocation));
     //throw new UnsupportedOperationException("MXOR decoder cannot recover this error");
   }
-  
+
   /**
    * This function calculates the necessary blocks to perform the decoding
    * (Keep isolated from RS Decoder for any new code).
-   * 
+   *
    * @param erasedLocation    Input data with all the erased positions
    * @param locationsToFetch  Output data with the blocks required
    * @param doLightDecode     Handles the different decoding processes
@@ -159,7 +159,7 @@ public class MultiXORCode implements ErasureCode {
   public void blocksToFetch(int[] erasedLocation, int[] locationsToFetch, boolean doLightDecode) {
     LOG.info("(MXOR) blocksToFetch: doLightDecode is " + doLightDecode);
     LOG.info("(MXOR) erasedLocation " + convertArrayToString(erasedLocation));
-	
+
     // we need to identify the need of blocks accordingly to the erasures
     int cols = stripeSize / 2;
     // we don't need to retrieve all the blocks..
@@ -175,11 +175,11 @@ public class MultiXORCode implements ErasureCode {
       // we rescue the companion data
       if (erasedPos < cols) {
         // it's in the first half of the data
-        locationsToFetch[erasedLocation[0] + cols] = 1; // the other data block... 
+        locationsToFetch[erasedLocation[0] + cols] = 1; // the other data block...
       } else {
         // it's in the second half of the data
         locationsToFetch[erasedLocation[0] - cols] = 1; // the other data block...
-      }  
+      }
     }
     else
     {

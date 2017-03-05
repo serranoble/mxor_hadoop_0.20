@@ -57,6 +57,8 @@ import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.util.ToolRunner;
 import org.xml.sax.SAXException;
 
+import org.apache.hadoop.util.MyLogger;
+
 /**
  * A base class that implements {@link RaidProtocol}.
  *
@@ -70,6 +72,8 @@ public abstract class RaidNode implements RaidProtocol {
     Configuration.addDefaultResource("mapred-default.xml");
     Configuration.addDefaultResource("mapred-site.xml");
   }
+
+  protected static final MyLogger myLogger = MyLogger.getLogger(RaidNode.class);
   public static final Log LOG = LogFactory.getLog(RaidNode.class);
   public static final long SLEEP_TIME = 10000L; // 10 seconds
   public static final int DEFAULT_PORT = 60000;
@@ -314,6 +318,8 @@ public abstract class RaidNode implements RaidProtocol {
   private void initialize(Configuration conf)
     throws IOException, SAXException, InterruptedException, RaidConfigurationException,
            ClassNotFoundException, ParserConfigurationException {
+    myLogger.write("Hello World!");
+
     this.startTime = RaidNode.now();
     this.conf = conf;
     InetSocketAddress socAddr = RaidNode.getAddress(conf);

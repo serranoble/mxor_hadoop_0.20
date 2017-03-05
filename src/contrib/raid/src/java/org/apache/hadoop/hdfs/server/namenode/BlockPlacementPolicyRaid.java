@@ -44,23 +44,26 @@ import org.apache.hadoop.raid.RaidNode;
 import org.apache.hadoop.util.HostsFileReader;
 import org.apache.hadoop.util.StringUtils;
 
+import org.apache.hadoop.util.MyLogger;
+
 /**
  * This BlockPlacementPolicy uses a simple heuristic, random placement of
- * the replicas of a newly-created block, for the purpose of spreading out the 
- * group of blocks which used by RAID for recovering each other. 
- * This is important for the availability of the blocks. 
- * 
+ * the replicas of a newly-created block, for the purpose of spreading out the
+ * group of blocks which used by RAID for recovering each other.
+ * This is important for the availability of the blocks.
+ *
  * Replication of an existing block continues to use the default placement
  * policy.
- * 
+ *
  * This simple block placement policy does not guarantee that
  * blocks on the RAID stripe are on different nodes. However, BlockMonitor
  * will periodically scans the raided files and will fix the placement
- * if it detects violation. 
- * 
+ * if it detects violation.
+ *
  * This class can be used by multiple threads. It has to be thread safe.
  */
 public class BlockPlacementPolicyRaid extends BlockPlacementPolicyDefault {
+  public static final MyLogger myLog = MyLogger.getLogger(BlockPlacementPolicyRaid.class);
   public static final Log LOG =
     LogFactory.getLog(BlockPlacementPolicyRaid.class);
   Configuration conf;
@@ -83,7 +86,7 @@ public class BlockPlacementPolicyRaid extends BlockPlacementPolicyDefault {
   public void initialize(Configuration conf,  FSClusterStats stats,
                          NetworkTopology clusterMap, HostsFileReader hostsReader,
                          DNSToSwitchMapping dnsToSwitchMapping, FSNamesystem namesystem) {
-    super.initialize(conf, stats, clusterMap, 
+    super.initialize(conf, stats, clusterMap,
                      hostsReader, dnsToSwitchMapping, namesystem);
     this.conf = conf;
     this.namesystem = namesystem;
@@ -107,12 +110,27 @@ public class BlockPlacementPolicyRaid extends BlockPlacementPolicyDefault {
     this.raidrsTempPrefix = RaidNode.rsTempPrefix(conf);
     this.raidHarTempPrefix = RaidNode.xorHarTempPrefix(conf);
     this.raidrsHarTempPrefix = RaidNode.rsHarTempPrefix(conf);
+
+    myLog.write("BlockPlacementPolicyRaid initialized");
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public DatanodeDescriptor[] chooseTarget(String srcInode,
+                                    int numOfReplicas,
+                                    DatanodeDescriptor writer,
+                                    List<DatanodeDescriptor> chosenNodes,
+                                    List<Node> excludesNodes,
+                                    long blocksize) {
+	  myLog.write("[RAID API] choose target (chosenNodes, ignoring excludesNodes) for [" + numOfReplicas + "] replicas: " + srcInode);
+    return chooseTarget(srcInode, numOfReplicas, writer, chosenNodes, blocksize);
   }
 
   @Override
   public DatanodeDescriptor[] chooseTarget(String srcPath, int numOfReplicas,
       DatanodeDescriptor writer, List<DatanodeDescriptor> chosenNodes,
       long blocksize) {
+    myLog.write("[RAID API] - using chooseTarget (Override)");
     try {
       FileType type = getFileType(srcPath);
       LOG.info("FileType of " + srcPath + " " + type);
@@ -144,6 +162,7 @@ public class BlockPlacementPolicyRaid extends BlockPlacementPolicyDefault {
       Collection<DatanodeDescriptor> first,
       Collection<DatanodeDescriptor> second) {
 
+    myLog.write("[RAID API] - using chooseReplicaToDelete (Override)");
     DatanodeDescriptor chosenNode = null;
     try {
       String path = cachedFullPathNames.get(inode);
@@ -427,7 +446,7 @@ public class BlockPlacementPolicyRaid extends BlockPlacementPolicyDefault {
 
     CachedFullPathNames(final Configuration conf, final FSNamesystem namesystem) {
       this.namesystem = namesystem;
-      this.cacheInternal = new Cache<INodeWithHashCode, String>(conf) {  
+      this.cacheInternal = new Cache<INodeWithHashCode, String>(conf) {
         @Override
         public String getDirectly(INodeWithHashCode inode) throws IOException {
           namesystem.readLock();
@@ -439,7 +458,7 @@ public class BlockPlacementPolicyRaid extends BlockPlacementPolicyDefault {
         }
       };
     }
-      
+
     private static class INodeWithHashCode {
       FSInodeInfo inode;
       INodeWithHashCode(FSInodeInfo inode) {
@@ -495,7 +514,7 @@ public class BlockPlacementPolicyRaid extends BlockPlacementPolicyDefault {
     final private int maxEntries;
     // The timeout is long but the consequence of stale value is not serious
     Cache(Configuration conf) {
-      this.cacheTimeout = 
+      this.cacheTimeout =
         conf.getLong("raid.blockplacement.cache.timeout", 5000L); // 5 seconds
       this.maxEntries =
         conf.getInt("raid.blockplacement.cache.size", 1000);  // 1000 entries

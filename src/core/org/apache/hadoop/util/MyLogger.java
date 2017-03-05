@@ -6,28 +6,28 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class MyLogger {
-	
+
 	private static MyLogger instance;
-	private static final String logFile = "/home/hdxorbas/log_raid.log";
-	
+	private static final String logFile = "/home/hduser/log_raid.log";
+
 	// added to avoid all the messages from hadoop internal classes
-	private final boolean enabled = false;
+	private final boolean enabled = true;
 	private String className;
 	private FileWriter fileWriter;
-	
+
 	private MyLogger() {
 		System.out.println("starting MyLogger, logging at " + logFile);
 	}
-	
+
 	@SuppressWarnings("rawtypes")
 	private MyLogger(Class c) {
 		className = c.getName();
 	}
-	
+
 	private MyLogger(String name) {
 		className = name;
 	}
-	
+
 	//double check locking implementation (faster with threads...)
 	public static synchronized MyLogger getInstance() {
 		if (instance == null) {
@@ -38,7 +38,7 @@ public class MyLogger {
 		}
 		return instance;
 	}
-	
+
 	@SuppressWarnings("rawtypes")
 	public static synchronized MyLogger getLogger(Class c) {
 		if (instance == null) {
@@ -49,7 +49,7 @@ public class MyLogger {
 		}
 		return instance;
 	}
-	
+
 	public static synchronized MyLogger getLogger(String name) {
 		if (instance == null) {
 			synchronized (MyLogger.class) {
@@ -59,7 +59,7 @@ public class MyLogger {
 		}
 		return instance;
 	}
-	
+
 	/**
 	 * Write any message into a file log declared as source
 	 * @param msg - input string with the message to be logged
@@ -95,7 +95,7 @@ public class MyLogger {
 			close();
 		}
 	}
-	
+
 	/**
 	 * Method executed at the end of the process tested
 	 */

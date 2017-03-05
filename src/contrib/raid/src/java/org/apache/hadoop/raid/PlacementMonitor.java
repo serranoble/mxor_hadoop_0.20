@@ -142,7 +142,7 @@ public class PlacementMonitor {
           getBlockInfos(srcFs, srcFile),
           getBlockInfos(parityFs, partFile, entry.startOffset, entry.length),
           code, srcFile, resolver);
-    } else { 
+    } else {
       // TODO: Move blocks in two clusters separately
       LOG.warn("Source and parity are in different file system. " +
           " source:" + srcFs.getUri() + " parity:" + parityFs.getUri() +
@@ -341,7 +341,7 @@ public class PlacementMonitor {
             if (skip) {
               // leave the first block where it is
               skip = false;
-              break;
+              break; // pserrano: commented in Lakshmi's code
             }
             int priority = numberOfNeighborBlocks;
             LocatedBlock lb = resolver.getLocatedBlock(block);
@@ -408,7 +408,7 @@ public class PlacementMonitor {
       Collections.sort(neighbors);
       for (Integer i : neighbors) {
         Long numBlocks = histo.get(i);
-        result += i + " co-localted blocks:" + numBlocks + "\n";
+        result += i + " co-located blocks:" + numBlocks + "\n";
       }
     }
     return result;

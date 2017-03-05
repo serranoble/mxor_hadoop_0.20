@@ -41,15 +41,15 @@ import org.apache.hadoop.util.HostsFileReader;
 /** The class is responsible for choosing the desired number of targets
  * for placing block replicas.
  * The replica placement strategy is that if the writer is on a datanode,
- * the 1st replica is placed on the local machine, 
+ * the 1st replica is placed on the local machine,
  * otherwise a random datanode. The 2nd replica is placed on a datanode
  * that is on a different rack. The 3rd replica is placed on a datanode
  * which is on a different node of the rack as the second replica.
  */
 public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
   private static MyLogger myLog = MyLogger.getLogger(BlockPlacementPolicyDefault.class);
-  
-  private boolean considerLoad; 
+
+  private boolean considerLoad;
   protected NetworkTopology clusterMap;
   private FSClusterStats stats;
 
@@ -60,12 +60,12 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
 
   BlockPlacementPolicyDefault() {
   }
-    
+
   /** {@inheritDoc} */
   public void initialize(Configuration conf, FSClusterStats stats,
       NetworkTopology clusterMap, HostsFileReader hostsReader,
       DNSToSwitchMapping dnsToSwitchMapping, FSNamesystem ns) {
-	myLog.write("initialize...");
+	  myLog.write("initialize...");
     this.considerLoad = conf.getBoolean("dfs.replication.considerLoad", true);
     this.stats = stats;
     this.clusterMap = clusterMap;
@@ -82,7 +82,7 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
                                     DatanodeDescriptor writer,
                                     List<DatanodeDescriptor> chosenNodes,
                                     long blocksize) {
-	myLog.write("choose target (no chosenNodes) for [" + numOfReplicas + "] replicas: " + srcPath);
+	  myLog.write("choose target (no chosenNodes) for [" + numOfReplicas + "] replicas: " + srcPath);
     return chooseTarget(numOfReplicas, writer, chosenNodes, null, blocksize);
   }
 
@@ -109,7 +109,7 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
 	  myLog.write("choose target (chosenNodes, no excludesNodes) for [" + numOfReplicas + "] replicas: " + srcInode);
     return chooseTarget(numOfReplicas, writer, chosenNodes, null, blocksize);
   }
-    
+
   /**
    * This is not part of the public API but is used by the unit tests.
    */
@@ -118,48 +118,48 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
                                     List<DatanodeDescriptor> chosenNodes,
                                     List<Node> exlcNodes,
                                     long blocksize) {
-	myLog.write("[not API] -> Picking using chosenNodes and exlcNodes");
+	  myLog.write("[not API] -> Picking using chosenNodes and exlcNodes");
     if (numOfReplicas == 0 || clusterMap.getNumOfLeaves()==0) {
       return new DatanodeDescriptor[0];
     }
-      
+
     HashMap<Node, Node> excludedNodes = new HashMap<Node, Node>();
     if (exlcNodes != null) {
       for (Node node:exlcNodes) {
         excludedNodes.put(node, node);
       }
     }
-     
+
     int clusterSize = clusterMap.getNumOfLeaves();
     int totalNumOfReplicas = chosenNodes.size()+numOfReplicas;
     if (totalNumOfReplicas > clusterSize) {
       numOfReplicas -= (totalNumOfReplicas-clusterSize);
       totalNumOfReplicas = clusterSize;
     }
-      
-    int maxNodesPerRack = 
+
+    int maxNodesPerRack =
       (totalNumOfReplicas-1)/clusterMap.getNumOfRacks()+2;
-      
-    List<DatanodeDescriptor> results = 
+
+    List<DatanodeDescriptor> results =
       new ArrayList<DatanodeDescriptor>(chosenNodes);
     for (Node node:chosenNodes) {
       excludedNodes.put(node, node);
     }
-      
+
     if (!clusterMap.contains(writer)) {
       writer=null;
     }
-      
-    DatanodeDescriptor localNode = chooseTarget(numOfReplicas, writer, 
+
+    DatanodeDescriptor localNode = chooseTarget(numOfReplicas, writer,
                                                 excludedNodes, blocksize, maxNodesPerRack, results);
-      
+
     results.removeAll(chosenNodes);
-      
+
     // sorting nodes to form a pipeline
     return getPipeline((writer==null)?localNode:writer,
                        results.toArray(new DatanodeDescriptor[results.size()]));
   }
-    
+
   /* choose <i>numOfReplicas</i> from all data nodes */
   protected DatanodeDescriptor chooseTarget(int numOfReplicas,
                                           DatanodeDescriptor writer,
@@ -167,29 +167,29 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
                                           long blocksize,
                                           int maxNodesPerRack,
                                           List<DatanodeDescriptor> results) {
-    
-	myLog.write("[not API] -> Picking using exlcNodes and maxNodesPerRack (pick with detail...)");
+
+	  myLog.write("[not API] -> Picking using exlcNodes and maxNodesPerRack (pick with detail...)");
     if (numOfReplicas == 0 || clusterMap.getNumOfLeaves()==0) {
       return writer;
     }
-      
+
     int numOfResults = results.size();
     boolean newBlock = (numOfResults==0);
     if (writer == null && !newBlock) {
       writer = results.get(0);
     }
-      
+
     try {
       // here, results is populated by the chosen targets
       if (numOfResults == 0) {
-        writer = chooseLocalNode(writer, excludedNodes, 
+        writer = chooseLocalNode(writer, excludedNodes,
                                  blocksize, maxNodesPerRack, results);
         if (--numOfReplicas == 0) {
           return writer;
         }
       }
       if (numOfResults <= 1) {
-        chooseRemoteRack(1, results.get(0), excludedNodes, 
+        chooseRemoteRack(1, results.get(0), excludedNodes,
                          blocksize, maxNodesPerRack, results);
         if (--numOfReplicas == 0) {
           return writer;
@@ -200,7 +200,7 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
           chooseRemoteRack(1, results.get(0), excludedNodes,
                            blocksize, maxNodesPerRack, results);
         } else if (newBlock){
-          chooseLocalRack(results.get(1), excludedNodes, blocksize, 
+          chooseLocalRack(results.get(1), excludedNodes, blocksize,
                           maxNodesPerRack, results);
         } else {
           chooseLocalRack(writer, excludedNodes, blocksize,
@@ -210,7 +210,7 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
           return writer;
         }
       }
-      chooseRandom(numOfReplicas, NodeBase.ROOT, excludedNodes, 
+      chooseRandom(numOfReplicas, NodeBase.ROOT, excludedNodes,
                    blocksize, maxNodesPerRack, results);
     } catch (NotEnoughReplicasException e) {
       FSNamesystem.LOG.warn("Not able to place enough replicas, still in need of "
@@ -218,13 +218,13 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
     }
     return writer;
   }
-  
+
   ////------------------------------------------------------------------------/////
   //// Local functions to solve the placement dilema...
   ////------------------------------------------------------------------------/////
-    
+
   /* choose <i>localMachine</i> as the target.
-   * if <i>localMachine</i> is not available, 
+   * if <i>localMachine</i> is not available,
    * choose a node on the same rack
    * @return the chosen node
    */
@@ -237,9 +237,9 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
     throws NotEnoughReplicasException {
     // if no local machine, randomly choose one node
     if (localMachine == null)
-      return chooseRandom(NodeBase.ROOT, excludedNodes, 
+      return chooseRandom(NodeBase.ROOT, excludedNodes,
                           blocksize, maxNodesPerRack, results);
-      
+
     // otherwise try local machine first
     Node oldNode = excludedNodes.put(localMachine, localMachine);
     if (oldNode == null) { // was not in the excluded list
@@ -248,17 +248,17 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
         results.add(localMachine);
         return localMachine;
       }
-    } 
-      
+    }
+
     // try a node on local rack
-    return chooseLocalRack(localMachine, excludedNodes, 
+    return chooseLocalRack(localMachine, excludedNodes,
                            blocksize, maxNodesPerRack, results);
   }
-    
+
   /* choose one node from the rack that <i>localMachine</i> is on.
    * if no such node is available, choose one node from the rack where
    * a second replica is on.
-   * if still no such node is available, choose a random node 
+   * if still no such node is available, choose a random node
    * in the cluster.
    * @return the chosen node
    */
@@ -271,10 +271,10 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
     throws NotEnoughReplicasException {
     // no local machine, so choose a random machine
     if (localMachine == null) {
-      return chooseRandom(NodeBase.ROOT, excludedNodes, 
+      return chooseRandom(NodeBase.ROOT, excludedNodes,
                           blocksize, maxNodesPerRack, results);
     }
-      
+
     // choose one from the local rack
     try {
       return chooseRandom(
@@ -308,13 +308,13 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
       }
     }
   }
-    
-  /* choose <i>numOfReplicas</i> nodes from the racks 
+
+  /* choose <i>numOfReplicas</i> nodes from the racks
    * that <i>localMachine</i> is NOT on.
-   * if not enough nodes are available, choose the remaining ones 
+   * if not enough nodes are available, choose the remaining ones
    * from the local rack
    */
-    
+
   protected void chooseRemoteRack(int numOfReplicas,
                                 DatanodeDescriptor localMachine,
                                 HashMap<Node, Node> excludedNodes,
@@ -329,7 +329,7 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
                    excludedNodes, blocksize, maxReplicasPerRack, results);
     } catch (NotEnoughReplicasException e) {
       chooseRandom(numOfReplicas-(results.size()-oldNumOfReplicas),
-                   localMachine.getNetworkLocation(), excludedNodes, blocksize, 
+                   localMachine.getNetworkLocation(), excludedNodes, blocksize,
                    maxReplicasPerRack, results);
     }
   }
@@ -342,12 +342,12 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
                                           HashMap<Node, Node> excludedNodes,
                                           long blocksize,
                                           int maxNodesPerRack,
-                                          List<DatanodeDescriptor> results) 
+                                          List<DatanodeDescriptor> results)
     throws NotEnoughReplicasException {
     int numOfAvailableNodes =
       clusterMap.countNumOfAvailableNodes(nodes, excludedNodes.keySet());
     while(numOfAvailableNodes > 0) {
-      DatanodeDescriptor chosenNode = 
+      DatanodeDescriptor chosenNode =
         (DatanodeDescriptor)(clusterMap.chooseRandom(nodes));
 
       Node oldNode = excludedNodes.put(chosenNode, chosenNode);
@@ -363,7 +363,7 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
     throw new NotEnoughReplicasException(
         "Not able to place enough replicas");
   }
-    
+
   /* Randomly choose <i>numOfReplicas</i> targets from <i>nodes</i>.
    */
   void chooseRandom(int numOfReplicas,
@@ -373,11 +373,11 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
                     int maxNodesPerRack,
                     List<DatanodeDescriptor> results)
     throws NotEnoughReplicasException {
-      
+
     int numOfAvailableNodes =
       clusterMap.countNumOfAvailableNodes(nodes, excludedNodes.keySet());
     while(numOfReplicas > 0 && numOfAvailableNodes > 0) {
-      DatanodeDescriptor chosenNode = 
+      DatanodeDescriptor chosenNode =
         (DatanodeDescriptor)(clusterMap.chooseRandom(nodes));
       Node oldNode = excludedNodes.put(chosenNode, chosenNode);
       if (oldNode == null) {
@@ -389,15 +389,15 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
         }
       }
     }
-      
+
     if (numOfReplicas>0) {
       throw new NotEnoughReplicasException(
                                            "Not able to place enough replicas");
     }
   }
-    
+
   /* judge if a node is a good target.
-   * return true if <i>node</i> has enough space, 
+   * return true if <i>node</i> has enough space,
    * does not have too much load, and the rack does not have too many nodes
    */
   protected boolean isGoodTarget(DatanodeDescriptor node,
@@ -406,7 +406,7 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
     return isGoodTarget(node, blockSize, maxTargetPerLoc,
                         this.considerLoad, results);
   }
-    
+
   protected boolean isGoodTarget(DatanodeDescriptor node,
                                long blockSize, int maxTargetPerLoc,
                                boolean considerLoad,
@@ -419,15 +419,15 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
       return false;
     }
 
-    long remaining = node.getRemaining() - 
-                     (node.getBlocksScheduled() * blockSize); 
+    long remaining = node.getRemaining() -
+                     (node.getBlocksScheduled() * blockSize);
     // check the remaining capacity of the target machine
     if (blockSize* FSConstants.MIN_BLOCKS_FOR_WRITE>remaining) {
       logr.debug("Node "+NodeBase.getPath(node)+
                 " is not chosen because the node does not have enough space");
       return false;
     }
-      
+
     // check the communication traffic of the target machine
     if (considerLoad) {
       double avgLoad = 0;
@@ -441,7 +441,7 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
         return false;
       }
     }
-      
+
     // check if the target rack has chosen too many nodes
     String rackname = node.getNetworkLocation();
     int counter=1;
@@ -459,9 +459,9 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
     }
     return true;
   }
-    
+
   /* Return a pipeline of nodes.
-   * The pipeline is formed finding a shortest path that 
+   * The pipeline is formed finding a shortest path that
    * starts from the writer and traverses all <i>nodes</i>
    * This is basically a traveling salesman problem.
    */
@@ -469,7 +469,7 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
                                            DatanodeDescriptor writer,
                                            DatanodeDescriptor[] nodes) {
     if (nodes.length==0) return nodes;
-      
+
     synchronized(clusterMap) {
       int index=0;
       if (writer == null || !clusterMap.contains(writer)) {
@@ -503,7 +503,7 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
   public int verifyBlockPlacement(String srcPath,
                                   LocatedBlock lBlk,
                                   int minRacks) {
-	myLog.write("verifying block placement for: " + srcPath + " with minRacks = " + minRacks);
+	  myLog.write("verifying block placement for: " + srcPath + " with minRacks = " + minRacks);
     DatanodeInfo[] locs = lBlk.getLocations();
     if (locs == null)
       locs = new DatanodeInfo[0];
@@ -523,9 +523,9 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
   public DatanodeDescriptor chooseReplicaToDelete(FSInodeInfo inode,
                                                  Block block,
                                                  short replicationFactor,
-                                                 Collection<DatanodeDescriptor> first, 
+                                                 Collection<DatanodeDescriptor> first,
                                                  Collection<DatanodeDescriptor> second) {
-	myLog.write("choosing replica to delete by default");
+	  myLog.write("choosing replica to delete by default");
     long minSpace = Long.MAX_VALUE;
     DatanodeDescriptor cur = null;
 
@@ -547,4 +547,3 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
   }
 
 }
-
