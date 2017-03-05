@@ -1,6 +1,6 @@
 #!/bin/sh
 # This is used for starting multiple datanodes on the same machine.
-# run it from hadoop-dir/ just like 'bin/hadoop' 
+# run it from hadoop-dir/ just like 'bin/hadoop'
 
 bin=`dirname "$0"`
 bin=`cd "$bin" >/dev/null && pwd`
@@ -11,7 +11,7 @@ if [ $# -lt 2 ]; then
   echo ""
   echo "    e.g. $S start 1 2"
   exit
-fi 
+fi
 
 run_datanode () {
   DN=$2
@@ -20,7 +20,7 @@ run_datanode () {
     -D dfs.datanode.address=0.0.0.0:`expr 50010 + $DN` \
     -D dfs.datanode.http.address=0.0.0.0:`expr 50075 + $DN` \
     -D dfs.datanode.ipc.address=0.0.0.0:`expr 50020 + $DN` \
-    -D dfs.data.dir=/app/mxhadoop/tmp-$USER/dfs/data$DN"
+    -D dfs.data.dir=/app/hadoop/tmp-$USER/dfs/data$DN"
   "$bin"/hadoop-daemon.sh $1 datanode $HADOOP_DATANODE_ARGS
 }
 
